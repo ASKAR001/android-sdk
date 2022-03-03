@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 
 internal object BackgroundWorkManager {
 
-    private val WORKER_TAG =
+    internal val WORKER_TAG =
         "MindboxBackgroundWorkManager${MindboxPreferences.hostAppName}"
 
     fun startOneTimeService(context: Context) = LoggingExceptionHandler.runCatching {

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sdk_version">Sdk version</string>
+    <string name="configuration">Configuration</string>
+    <string name="uuid">UUID</string>
+    <string name="push_service">Push service</string>
+    <string name="push_token">Push token</string>
+    <string name="token_save_date">Token save date</string>
+    <string name="worker_status">Worker status</string>
+    <string name="events_in_database">Events in database</string>
+    <string name="update">Update</string>
+    <string name="copy_to_clipboard">Copy to clipboard</string>
+</resources>

@@ -103,7 +103,7 @@ internal object DbManager {
         }
     }
 
-    private fun getEvents(): List<Event> = LoggingExceptionHandler.runCatching(
+    fun getEvents(): List<Event> = LoggingExceptionHandler.runCatching(
         defaultValue = listOf()
     ) {
         synchronized(this) { mindboxDb.eventsDao().getAll() }
