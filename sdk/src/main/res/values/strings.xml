@@ -7,6 +7,8 @@
     <string name="push_token">Push token</string>
     <string name="token_save_date">Token save date</string>
     <string name="worker_status">Worker status</string>
+    <string name="worker_progress">Worker progress</string>
+    <string name="worker_progress_value">%s%%</string>
     <string name="events_in_database">Events in database</string>
     <string name="update">Update</string>
     <string name="copy_to_clipboard">Copy to clipboard</string>

@@ -7,6 +7,7 @@ import cloud.mindbox.mobile_sdk.logger.MindboxLoggerImpl
 import cloud.mindbox.mobile_sdk.models.Configuration
 import cloud.mindbox.mobile_sdk.models.Event
 import cloud.mindbox.mobile_sdk.repository.MindboxPreferences
+import cloud.mindbox.mobile_sdk.services.MindboxOneTimeEventWorker
 import cloud.mindbox.mobile_sdk.utils.LoggingExceptionHandler
 import kotlinx.coroutines.*
 import java.util.concurrent.CountDownLatch
@@ -17,7 +18,8 @@ internal class WorkerDelegate {
 
     fun sendEventsWithResult(
         context: Context,
-        parent: Any
+        worker: MindboxOneTimeEventWorker,
+        parent: Any,
     ): ListenableWorker.Result {
         MindboxLoggerImpl.d(parent, "Start working...")
 
@@ -43,7 +45,7 @@ internal class WorkerDelegate {
             } else {
                 MindboxLoggerImpl.d(parent, "Will be sent ${events.size}")
 
-                sendEvents(context, events, configuration, parent)
+                sendEvents(context, worker, events, configuration, parent)
 
                 when {
                     isWorkerStopped -> ListenableWorker.Result.failure()
@@ -60,13 +62,14 @@ internal class WorkerDelegate {
 
     private fun sendEvents(
         context: Context,
+        worker: MindboxOneTimeEventWorker,
         events: List<Event>,
         configuration: Configuration,
-        parent: Any
+        parent: Any,
     ) {
         LoggingExceptionHandler.runCatching {
 
-            val eventsCount = events.size - 1
+            val eventsCount = events.size
             val deviceUuid = MindboxPreferences.deviceUuid
 
             events.forEachIndexed { index, event ->
@@ -78,6 +81,8 @@ internal class WorkerDelegate {
                     if (isSent) {
                         handleSendResult(event)
                     }
+
+                    worker.setEventsProgress(index, eventsCount)
 
                     MindboxLoggerImpl.i(
                         parent,
@@ -102,7 +107,7 @@ internal class WorkerDelegate {
     }
 
     private fun handleSendResult(
-        event: Event
+        event: Event,
     ) = runBlocking(Dispatchers.IO) { DbManager.removeEventFromQueue(event) }
 
 }

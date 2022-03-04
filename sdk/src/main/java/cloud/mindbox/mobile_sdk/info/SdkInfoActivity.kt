@@ -12,7 +12,9 @@ import cloud.mindbox.mobile_sdk.Mindbox
 import cloud.mindbox.mobile_sdk.R
 import cloud.mindbox.mobile_sdk.managers.DbManager
 import cloud.mindbox.mobile_sdk.services.BackgroundWorkManager
+import cloud.mindbox.mobile_sdk.services.MindboxOneTimeEventWorker
 import kotlinx.coroutines.*
+import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 class SdkInfoActivity : Activity() {
@@ -24,8 +26,13 @@ class SdkInfoActivity : Activity() {
         val pushService: String?,
         val pushToken: String?,
         val tokenSaveDate: String,
-        val workerStatus: String,
+        val workerStatus: WorkerStatus,
         val eventsCount: Int,
+    )
+
+    private data class WorkerStatus(
+        val status: String,
+        val progress: Double,
     )
 
     private var sdkInfo: SdkInfo? = null
@@ -37,6 +44,7 @@ class SdkInfoActivity : Activity() {
     private lateinit var pushTokenView: TextView
     private lateinit var tokenSaveDateView: TextView
     private lateinit var workerStatusView: TextView
+    private lateinit var workerProgressView: TextView
     private lateinit var eventsCountView: TextView
 
     private val coroutineContext = SupervisorJob()
@@ -53,6 +61,7 @@ class SdkInfoActivity : Activity() {
         pushTokenView = findViewById(R.id.pushToken)
         tokenSaveDateView = findViewById(R.id.tokenSaveDate)
         workerStatusView = findViewById(R.id.workerStatus)
+        workerProgressView = findViewById(R.id.workerProgress)
         eventsCountView = findViewById(R.id.eventsCount)
 
         getAndDisplayData()
@@ -80,25 +89,30 @@ class SdkInfoActivity : Activity() {
     )
 
     private suspend fun getDeviceUUID(): String = suspendCoroutine { continuation ->
-        Mindbox.subscribeDeviceUuid {
-            continuation.resumeWith(Result.success(it))
-        }
+        Mindbox.subscribeDeviceUuid(continuation::resume)
     }
 
     private suspend fun getPushToken(): String? = suspendCoroutine { continuation ->
-        Mindbox.subscribePushToken {
-            continuation.resumeWith(Result.success(it))
-        }
+        Mindbox.subscribePushToken(continuation::resume)
     }
 
-    private suspend fun getWorkerStatus(): String = suspendCoroutine { continuation ->
+    private suspend fun getWorkerStatus(): WorkerStatus = suspendCoroutine { continuation ->
         val future = WorkManager.getInstance(this).getWorkInfosByTag(
             BackgroundWorkManager.WORKER_TAG
         )
         future.addListener(
             {
-                val status = future.get().firstOrNull()?.state?.name ?: "Not started"
-                continuation.resumeWith(Result.success(status))
+                val workerData = future.get().firstOrNull()
+                val status = workerData?.state?.name ?: "Not started"
+                val progress = workerData?.progress?.getDouble(
+                    MindboxOneTimeEventWorker.PROGRESS,
+                    -1.0,
+                ) ?: -1.0
+                val workerStatus = WorkerStatus(
+                    status = status,
+                    progress = progress,
+                )
+                continuation.resume(workerStatus)
             },
             Dispatchers.Default.asExecutor()
         )
@@ -112,7 +126,8 @@ class SdkInfoActivity : Activity() {
         pushServiceView.text = sdkInfo?.pushService
         pushTokenView.text = sdkInfo?.pushToken
         tokenSaveDateView.text = sdkInfo?.tokenSaveDate
-        workerStatusView.text = sdkInfo?.workerStatus
+        workerStatusView.text = sdkInfo?.workerStatus?.status
+        workerProgressView.text = getString(R.string.worker_progress_value, sdkInfo?.workerStatus?.progress.toString())
         eventsCountView.text = sdkInfo?.eventsCount.toString()
 
     }

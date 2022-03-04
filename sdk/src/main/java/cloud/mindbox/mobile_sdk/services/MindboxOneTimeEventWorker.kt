@@ -3,6 +3,7 @@ package cloud.mindbox.mobile_sdk.services
 import android.content.Context
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import cloud.mindbox.mobile_sdk.managers.WorkerDelegate
 import cloud.mindbox.mobile_sdk.utils.LoggingExceptionHandler
 
@@ -11,6 +12,10 @@ internal class MindboxOneTimeEventWorker(
     workerParams: WorkerParameters
 ) : Worker(appContext, workerParams) {
 
+    companion object {
+        const val PROGRESS = "Progress"
+    }
+
     private val workerDelegate: WorkerDelegate by lazy { WorkerDelegate() }
 
     override fun doWork(): Result = LoggingExceptionHandler.runCatching(
@@ -18,7 +23,8 @@ internal class MindboxOneTimeEventWorker(
     ) {
             workerDelegate.sendEventsWithResult(
                 context = applicationContext,
-                parent = this
+                worker = this,
+                parent = this,
             )
         }
 
@@ -27,5 +33,11 @@ internal class MindboxOneTimeEventWorker(
         LoggingExceptionHandler.runCatching {
             workerDelegate.onEndWork(this)
         }
+    }
+
+    fun setEventsProgress(eventIndex: Int, totalEvents: Int) {
+        val progress = (eventIndex.toDouble() / totalEvents.toDouble()) * 100
+        val progressData = workDataOf(PROGRESS to progress)
+        setProgressAsync(progressData)
     }
 }
