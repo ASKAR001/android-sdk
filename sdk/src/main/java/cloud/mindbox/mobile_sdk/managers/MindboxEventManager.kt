@@ -93,7 +93,7 @@ internal object MindboxEventManager {
                         || event.eventType is EventType.AppInstalledWithoutCustomer
                 val isInitialized = !MindboxPreferences.isFirstInitialize || isInstallEvent
                 if (!isInitialized || configuration == null) {
-                    MindboxLoggerImpl.e(this, "Configuration was not initialized")
+                    MindboxLoggerImpl.e(this@MindboxEventManager, "Configuration was not initialized")
                 } else {
                     WorkerDelegate().sendEvent(
                         context,
