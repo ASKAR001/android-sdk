@@ -373,17 +373,9 @@ object Mindbox {
                         .takeIf { it != savedProvider }
                         ?.let { newProvider ->
                             MindboxPreferences.notificationProvider = newProvider
-                            if (!MindboxPreferences.isFirstInitialize) {
+                            subscribeDeviceUuid {
                                 mindboxScope.launch {
                                     updateAppInfo(context)
-                                }
-                            } else {
-                                subscribeDeviceUuid {
-                                    if (!MindboxPreferences.isFirstInitialize) {
-                                        mindboxScope.launch {
-                                            updateAppInfo(context)
-                                        }
-                                    }
                                 }
                             }
                         }
