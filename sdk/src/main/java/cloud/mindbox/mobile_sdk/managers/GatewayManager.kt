@@ -37,7 +37,7 @@ internal object GatewayManager : MindboxKoin.MindboxKoinComponent {
     private const val MAX_RETRIES = 0
     private const val MONITORING_DELAY = 5000
     private val gson by lazy { Gson() }
-    private val gatewayScope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Main + Job()) }
+    private val gatewayScope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Main) }
     private fun getCustomerSegmentationsUrl(configuration: Configuration): String {
         return "https://${configuration.domain}/v3/operations/sync?endpointId=${configuration.endpointId}&operation=Tracker.CheckCustomerSegments&deviceUUID=${MindboxPreferences.deviceUuid}"
     }
